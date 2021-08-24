@@ -22,6 +22,7 @@ class ReviewRequest(Model):
     review_type: str
     num_advices: int
     num_approvals: int
+    completed: int
     num_assigned_users: int
     created: datetime = datetime.now()
     documents: List[str] = field(default_factory=list)

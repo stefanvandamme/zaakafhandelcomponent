@@ -518,3 +518,8 @@ ELASTICSEARCH_DSL = {
     "default": {"hosts": config("ES_HOST", "localhost:9200")},
 }
 ES_INDEX_ZAKEN = "zaken"
+
+# Kownsl API integration in BFF
+KOWNSL_API_BASE_URL = config(
+    "KOWNSL_API_BASE_URL", "https://kownsl.utrechtproeftuin.nl/api/v1"
+)

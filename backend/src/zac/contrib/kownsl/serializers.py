@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils.translation import gettext as _
 
 from furl import furl
@@ -15,7 +16,7 @@ from .data import Advice, AdviceDocument, Approval, Author, ReviewRequest
 
 
 class KownslReviewRequestSerializer(ProxySerializer):
-    PROXY_SCHEMA_BASE = "https://kownsl.utrechtproeftuin.nl/api/v1"
+    PROXY_SCHEMA_BASE = settings.KOWNSL_API_BASE_URL
     PROXY_SCHEMA_PATH = [
         "paths",
         "/api/v1/review-requests/{uuid}",
@@ -30,16 +31,9 @@ class KownslReviewRequestSerializer(ProxySerializer):
 
 
 class ZaakRevReqSummarySerializer(APIModelSerializer):
-    completed = serializers.SerializerMethodField(
-        label=_("completed requests"), help_text=_("The number of completed requests.")
-    )
-
     class Meta:
         model = ReviewRequest
         fields = ("id", "review_type", "completed", "num_assigned_users")
-
-    def get_completed(self, obj) -> int:
-        return obj.num_advices + obj.num_approvals
 
 
 class AuthorSerializer(APIModelSerializer):
