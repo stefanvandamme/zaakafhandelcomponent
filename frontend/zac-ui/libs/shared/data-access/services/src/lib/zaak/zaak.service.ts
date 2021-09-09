@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {ApplicationHttpClient} from '@gu/services';
-import {Document, UserPermission, Zaak} from '@gu/models';
+import {Document, EigenschapWaarde, UserPermission, Zaak} from '@gu/models';
 import { Router } from '@angular/router';
 
 @Injectable({
@@ -76,6 +76,14 @@ export class ZaakService {
   listCaseProperties(bronorganisatie, identificatie): Observable<any> {
     const endpoint = encodeURI(`/api/core/cases/${bronorganisatie}/${identificatie}/properties`);
     return this.http.Get<any>(endpoint);
+  }
+
+  /**
+   * Update case property
+   * @param {EigenschapWaarde} property
+   */
+  updateCaseProperty(property: EigenschapWaarde) {
+    // TODO
   }
 
   /**
