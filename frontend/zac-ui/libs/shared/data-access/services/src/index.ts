@@ -1,4 +1,5 @@
 export * from './lib/activities/activities.service';
+export * from './lib/checklists/checklist.service';
 export * from './lib/http/http-client';
 export * from './lib/kadaster/kadaster.service';
 export * from './lib/meta/meta.service';
