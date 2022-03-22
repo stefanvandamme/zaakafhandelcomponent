@@ -1,4 +1,4 @@
-interface QuestionChoice {
+export interface QuestionChoice {
   name: string,
   value: string,
 }

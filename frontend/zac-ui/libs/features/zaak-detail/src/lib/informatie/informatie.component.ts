@@ -1,9 +1,8 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {FieldConfiguration, SnackbarService} from '@gu/components';
-import {Checklist, ChecklistType, EigenschapWaarde, NieuweEigenschap, Zaak, ZaaktypeEigenschap} from '@gu/models';
-import {ChecklistService, MetaService, ZaakService} from '@gu/services';
+import {EigenschapWaarde, NieuweEigenschap, Zaak, ZaaktypeEigenschap} from '@gu/models';
+import {MetaService, ZaakService} from '@gu/services';
 import {SearchService} from '../../../../search/src/lib/search.service';
-import { isTestEnvironment } from '@gu/utils';
 
 /**
  * <gu-informatie [bronorganisatie]="bronorganisatie" [identificatie]="identificatie"></gu-informatie>
@@ -74,8 +73,6 @@ export class InformatieComponent implements OnInit, OnChanges {
     private searchService: SearchService,
     private snackbarService: SnackbarService,
     private zaakService: ZaakService,
-
-    private checklistService: ChecklistService,
   ) {
   }
 
@@ -181,17 +178,6 @@ export class InformatieComponent implements OnInit, OnChanges {
   ngOnChanges(): void {
     this.isVisibleTezzaLink = this.zaaktypenWithTezzaLink.includes(this.zaaktypeOmschrijving);
     this.getContextData();
-
-    // TEST
-    console.log(this.zaak);
-
-    this.checklistService.listChecklistTypeAndRelatedQuestions(this.zaak.zaaktype.url).subscribe(
-      (checklistTypes: ChecklistType[]) => console.log('checklistsType', checklistTypes)
-    );
-
-    this.checklistService.listChecklistAndRelatedAnswers(this.zaak.url).subscribe(
-      (checklists: Checklist[]) => console.log('checklists', checklists)
-    );
   };
 
   //

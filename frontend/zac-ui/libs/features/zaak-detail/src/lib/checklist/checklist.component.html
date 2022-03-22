@@ -1,0 +1,15 @@
+<div class="checklist card">
+  <!-- Loading -->
+  <ng-container *ngIf="isLoading">
+    <gu-loading-indicator></gu-loading-indicator>
+  </ng-container>
+  <!-- End loading -->
+
+  <div class='mb-4' *ngIf="!isLoading">
+    <ng-container *ngFor="let checklistForm of checklistForms">
+      <gu-form title="Checklist" [form]="checklistForm" (formSubmit)="submitForm($event)"></gu-form>
+    </ng-container>
+  </div>
+
+  <ng-content></ng-content>
+</div>

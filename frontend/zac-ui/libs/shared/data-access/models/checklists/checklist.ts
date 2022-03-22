@@ -8,11 +8,11 @@ export interface ChecklistAnswer {
 }
 
 export interface Checklist {
-  url: string,
-  created: string,
-  checklistType: string,
   zaak: string,
   answers: ChecklistAnswer[],
   groupAssignee?: UserGroupDetail,
   userAssignee?: User,
+  url?: string,
+  created?: string,
+  checklistType?: string,
 }

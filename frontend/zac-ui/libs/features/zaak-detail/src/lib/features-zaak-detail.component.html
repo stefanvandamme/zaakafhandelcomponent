@@ -67,6 +67,9 @@
             <!-- Left column -->
             <div *ngIf="zaakData" class="col-md-4">
 
+              <div class="mb-4">
+                <gu-checklist [bronorganisatie]="bronorganisatie" [identificatie]="identificatie"></gu-checklist>
+              </div>
 
               <!-- Show result of a case if it's finished -->
               <div *ngIf="zaakData?.resultaat" class="card card--accent mb-4">
