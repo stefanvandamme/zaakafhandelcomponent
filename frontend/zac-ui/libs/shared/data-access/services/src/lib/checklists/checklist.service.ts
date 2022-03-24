@@ -14,32 +14,32 @@ export class ChecklistService {
 
   /**
    * List checklisttype and related questions.
-   * @param {string} zaaktypeUrl URL-reference of the ZAAKTYPE related to the checklisttype.
+   * @param {string} zaakUrl URL-reference of the ZAAK with ZAAKTYPE related to the checklisttype.
    * @return {Observable<ChecklistType[]>}
    */
-  listChecklistTypeAndRelatedQuestions(zaaktypeUrl: string): Observable<ChecklistType[]> {
+  listChecklistTypeAndRelatedQuestions(zaakUrl: string): Observable<ChecklistType[]> {
     const endpoint = encodeURI(`/api/checklists/checklisttypes`);
-    const params = new HttpParams().set('zaaktype', zaaktypeUrl);
+    const params = new HttpParams().set('zaak', zaakUrl);
 
     return this.http.Get<ChecklistType[]>(endpoint, {
       params: params
     });
   }
 
-  /**
-   * Create checklisttype and related questions.
-   * @param {ChecklistQuestion[]} checklistQuestions
-   * @param {string} zaaktypeUrl URL-reference of the ZAAKTYPE related to the checklisttype.
-   * @return {Observable<ChecklistType>}
-   */
-  createChecklistTypeAndRelatedQuestions(checklistQuestions: ChecklistQuestion[], zaaktypeUrl: string): Observable<ChecklistType> {
-    const endpoint = encodeURI(`/api/checklists/checklisttypes`);
-
-    return this.http.Post<ChecklistType>(endpoint, {
-      questions: checklistQuestions,
-      zaaktype: zaaktypeUrl,
-    });
-  }
+  // /**
+  //  * Create checklisttype and related questions.
+  //  * @param {ChecklistQuestion[]} checklistQuestions
+  //  * @param {string} zaaktypeUrl URL-reference of the ZAAKTYPE related to the checklisttype.
+  //  * @return {Observable<ChecklistType>}
+  //  */
+  // createChecklistTypeAndRelatedQuestions(checklistQuestions: ChecklistQuestion[], zaaktypeUrl: string): Observable<ChecklistType> {
+  //   const endpoint = encodeURI(`/api/checklists/checklisttypes`);
+  //
+  //   return this.http.Post<ChecklistType>(endpoint, {
+  //     questions: checklistQuestions,
+  //     zaaktype: zaaktypeUrl,
+  //   });
+  // }
 
   /**
    * Update checklisttype and related questions.
@@ -76,18 +76,25 @@ export class ChecklistService {
    * @param {string} checklistTypeUuid
    * @param {ChecklistAnswer[]} checklistAnswers
    * @param {string} zaakUrl
-   * @param {string} username
+   * @param {string} userAssignee
+   * @param {string} groupAssignee
    */
-  createChecklistAndRelatedAnswers(checklistTypeUuid: string, checklistAnswers: ChecklistAnswer[], zaakUrl: string, username: string): Observable<Checklist> {
+  createChecklistAndRelatedAnswers(checklistTypeUuid: string, checklistAnswers: ChecklistAnswer[], zaakUrl: string, userAssignee: string = null, groupAssignee: string = null): Observable<Checklist> {
     const endpoint = encodeURI(`/api/checklists/checklists`);
 
-    return this.http.Post<Checklist>(endpoint, {
+    const params = {
       checklistType: checklistTypeUuid,
       zaak: zaakUrl,
       answers: checklistAnswers,
-      // groupAssignee: groupAssignee,
-      userAssignee: username,
-    });
+    }
+
+    if (userAssignee) {
+      params['userAssignee'] = userAssignee;
+    } else {
+      params['groupAssignee'] = groupAssignee;
+    }
+
+    return this.http.Post<Checklist>(endpoint, params);
   }
 
   /**
@@ -96,17 +103,24 @@ export class ChecklistService {
    * @param {string} checklistTypeUuid
    * @param {ChecklistAnswer[]} checklistAnswers
    * @param {string} zaakUrl
-   * @param {string} username
+   * @param {string} userAssignee
+   * @param {string} groupAssignee
    */
-  updateChecklistAndRelatedAnswers(id: number, checklistTypeUuid: string, checklistAnswers: ChecklistAnswer[], zaakUrl: string, username: string): Observable<Checklist> {
+  updateChecklistAndRelatedAnswers(id: number, checklistTypeUuid: string, checklistAnswers: ChecklistAnswer[], zaakUrl: string, userAssignee: string = null, groupAssignee: string = null): Observable<Checklist> {
     const endpoint = encodeURI(`/api/checklists/checklists/${id}`);
 
-    return this.http.Patch<Checklist>(endpoint, {
+    const params = {
       checklistType: checklistTypeUuid,
       zaak: zaakUrl,
       answers: checklistAnswers,
-      // groupAssignee: groupAssignee,
-      userAssignee: username,
-    });
+    }
+
+    if (userAssignee) {
+      params['userAssignee'] = userAssignee;
+    } else {
+      params['groupAssignee'] = groupAssignee;
+    }
+
+    return this.http.Put<Checklist>(endpoint, params);
   }
 }

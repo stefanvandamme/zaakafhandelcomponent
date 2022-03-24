@@ -155,6 +155,7 @@ class BaseChecklistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Checklist
         fields = (
+            "id",
             "url",
             "created",
             "checklist_type",

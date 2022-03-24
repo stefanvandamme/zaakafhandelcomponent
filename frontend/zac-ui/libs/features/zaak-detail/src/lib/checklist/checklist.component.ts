@@ -1,7 +1,18 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {FieldConfiguration, SnackbarService} from '@gu/components';
-import {Checklist, ChecklistAnswer, ChecklistQuestion, ChecklistType, QuestionChoice, User, Zaak} from '@gu/models';
+import {
+  Checklist,
+  ChecklistAnswer,
+  ChecklistQuestion,
+  ChecklistType,
+  QuestionChoice,
+  User,
+  Zaak
+} from '@gu/models';
 import {ChecklistService, UserService, ZaakService} from '@gu/services';
+import {KetenProcessenService} from '../keten-processen/keten-processen.service';
+import {UserGroupResult} from '../../models/user-group-search';
+import {UserSearchResult} from '../../models/user-search';
 
 
 /**
@@ -27,11 +38,20 @@ export class ChecklistComponent implements OnInit, OnChanges {
   /** @type {boolean} Whether the API is loading. */
   isLoading = false;
 
+  /** @type {ChecklistType[]} The checklist type (array of 1). */
+  checklistTypes: ChecklistType[] = [];
+
+  /** @type {Checklist[]} The checklist (array of 1). */
+  checklists: Checklist[] = [];
+
   /** @type {FieldConfiguration[]} The checklist form. */
   checklistForms: FieldConfiguration[][] = null;
 
-  /** @type {User} */
-  user: User
+  /** @type {User[]} */
+  users: UserSearchResult[] = []
+
+  /** @type {Group[]} */
+  groups: UserGroupResult[] = []
 
   /** @type {Zaak} The zaak object. */
   zaak: Zaak = null;
@@ -39,12 +59,14 @@ export class ChecklistComponent implements OnInit, OnChanges {
   /**
    * Constructor method.
    * @param {ChecklistService} checklistService
+   * @param {KetenProcessenService} ketenProcessenService
    * @param {SnackbarService} snackbarService
    * @param {UserService} userService
    * @param {ZaakService} zaakService
    */
   constructor(
     private checklistService: ChecklistService,
+    private ketenProcessenService: KetenProcessenService,
     private snackbarService: SnackbarService,
     private userService: UserService,
     private zaakService: ZaakService,
@@ -82,18 +104,29 @@ export class ChecklistComponent implements OnInit, OnChanges {
    * Fetches the properties to show in the form.
    */
   getContextData(): void {
-    this.fetchUser();
     this.fetchChecklistData();
+    this.fetchUsers();
+    this.fetchGroups();
   }
 
   /**
    * Fetches the user.
    */
-  fetchUser(): void {
-    this.userService.getCurrentUser().subscribe(
-      (user: [User, boolean]) => this.user = user[0],
-      this.reportError.bind(this)
-    )
+  fetchUsers(): void {
+    this.ketenProcessenService.getAccounts('').subscribe((userSearch) => {
+      this.users = userSearch.results;
+      this.checklistForms = this.getChecklistForms();
+    });
+  }
+
+  /**
+   * Fetches the user.
+   */
+  fetchGroups(): void {
+    this.ketenProcessenService.getUserGroups('').subscribe((userGroupList) => {
+      this.groups = userGroupList.results;
+      this.checklistForms = this.getChecklistForms();
+    });
   }
 
   /**
@@ -105,13 +138,16 @@ export class ChecklistComponent implements OnInit, OnChanges {
       (zaak) => {
         this.zaak = zaak;
 
-        this.checklistService.listChecklistTypeAndRelatedQuestions(zaak.zaaktype.url).subscribe(
+        this.checklistService.listChecklistTypeAndRelatedQuestions(zaak.url).subscribe(
           (checklistTypes: ChecklistType[]) => {
-            this.checklistForms = this.getChecklistForms(checklistTypes);
+            this.checklistTypes = checklistTypes;
 
             this.checklistService.listChecklistAndRelatedAnswers(zaak.url).subscribe(
               (checklists: Checklist[]) => {
-                console.log('checklists', checklists);
+                this.checklists = checklists;
+
+                console.log(this.zaak, this.checklistTypes, this.checklists);
+                this.checklistForms = this.getChecklistForms();
                 this.isLoading = false;
               },
               this.reportError.bind(this)
@@ -123,13 +159,13 @@ export class ChecklistComponent implements OnInit, OnChanges {
       this.reportError.bind(this)
     );
   }
+
   /**
    * Returns a FieldConfiguration[] (form) for every ChecklistType.
-   * @param {ChecklistType[]} checklistTypes
    * @return {FieldConfiguration[][]}
    */
-  getChecklistForms(checklistTypes: ChecklistType[]): FieldConfiguration[][] {
-    return checklistTypes.map((checklistType: ChecklistType) => this.getChecklistForm(checklistType));
+  getChecklistForms(): FieldConfiguration[][] {
+    return this.checklistTypes.map((checklistType: ChecklistType) => this.getChecklistForm(checklistType));
   }
 
   /**
@@ -138,20 +174,40 @@ export class ChecklistComponent implements OnInit, OnChanges {
    * @return {FieldConfiguration[]}
    */
   getChecklistForm(checklistType: ChecklistType): FieldConfiguration[] {
-    const fieldConfigurations = checklistType.questions.map((question: ChecklistQuestion) => ({
-      label: question.question,
-      name: question.question,
-      choices: (question.isMultipleChoice)
-        ? question.choices.map((questionChoice: QuestionChoice) => ({
-          label: questionChoice.name,
-          value: questionChoice.value,
-        }))
-        : null,
-    }))
+    const checklist = this.checklists.length ? this.checklists[0] : null;
+
+    const fieldConfigurations = checklistType.questions.map((question: ChecklistQuestion) => {
+      const answer = checklist?.answers.find((checklistAnswer) => checklistAnswer.question === question.question);
+
+      return ({
+        label: question.question,
+        name: question.question,
+        value: answer?.answer,
+        choices: (question.isMultipleChoice)
+          ? question.choices.map((questionChoice: QuestionChoice) => ({
+            label: questionChoice.name,
+            value: questionChoice.value,
+          }))
+          : null,
+      });
+    });
+
     return [...fieldConfigurations, {
       name: 'uuid',
       type: 'hidden',
       value: checklistType.uuid,
+    }, {
+      label: 'Toegewezen gebruiker',
+      name: 'userAssignee',
+      required: false,
+      choices: this.users.map((user: UserSearchResult) => ({label: user.username, value: user.username})),
+      value: checklist.userAssignee?.username,
+    }, {
+      label: 'Toegewezen groep',
+      name: 'groupAssignee',
+      required: false,
+      choices: this.groups.map((group: UserGroupResult) => ({label: group.name, value: group.name})),
+      value: checklist.groupAssignee?.name,
     }]
   }
 
@@ -164,17 +220,24 @@ export class ChecklistComponent implements OnInit, OnChanges {
    * @param {Object} data
    */
   submitForm(data): void {
-    const {uuid, ...answerData} = data;
+    const {uuid, userAssignee, groupAssignee, ...answerData} = data;
     const answers: ChecklistAnswer[] = Object.entries(answerData).map(([question, answer]) => ({
       question: question,
       answer: answer as string,
       created: new Date().toISOString()
     }));
 
-    this.checklistService.createChecklistAndRelatedAnswers(uuid, answers, this.zaak.url, this.user.username).subscribe(
-      this.fetchChecklistData.bind(this),
-      this.reportError.bind(this),
-    );
+    if (this.checklists.length) {
+      this.checklistService.updateChecklistAndRelatedAnswers(this.checklists[0]['id'],  uuid, answers, this.zaak.url, userAssignee, groupAssignee).subscribe(
+        this.fetchChecklistData.bind(this),
+        this.reportError.bind(this),
+      );
+    } else {
+      this.checklistService.createChecklistAndRelatedAnswers(uuid, answers, this.zaak.url, userAssignee, groupAssignee).subscribe(
+        this.fetchChecklistData.bind(this),
+        this.reportError.bind(this),
+      );
+    }
   }
 
   //
