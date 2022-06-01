@@ -28,7 +28,6 @@
             </header>
           </section>
 
-
           <!-- Error and 403 access request -->
           <section *ngIf="showErrorBlock && errorMessage" class="row">
             <div class="col-lg-6">
@@ -37,7 +36,7 @@
                           class="d-block mb-4"></gu-message>
 
               <!-- Hide if case is closed and the user is not allowed to force edit -->
-              <div *ngIf="canRequestAccess && !isAccessRequestSuccess && (!zaakData.resultaat || zaakData.kanGeforceerdBijwerken)">
+              <div *ngIf="canRequestAccess && !isAccessRequestSuccess && (!zaakData?.resultaat || zaakData?.kanGeforceerdBijwerken)">
                 <h2>Toegang vragen tot deze zaak</h2>
 
                 <gu-input [control]="commentControl"
