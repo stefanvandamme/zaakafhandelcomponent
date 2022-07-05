@@ -1,9 +1,9 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { UserSearchResult, Zaak, Permission } from '@gu/models';
-import { AccountsService, ApplicationHttpClient } from '@gu/services';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
+import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {UserSearchResult, Zaak, Permission, UserPermission, ZaakPermission} from '@gu/models';
+import {AccountsService, ZaakService} from '@gu/services';
 import {ModalService, SnackbarService} from '@gu/components';
-import { DatePipe } from '@angular/common';
+import {DatePipe} from '@angular/common';
 
 @Component({
   selector: 'gu-toegang-verlenen',
@@ -28,14 +28,24 @@ export class ToegangVerlenenComponent implements OnInit, OnChanges {
   submitSuccess: boolean;
   errorMessage: string;
 
+  /**
+   * Constructor method.
+   * @param {AccountsService} accountsService
+   * @param datePipe
+   * @param {FormBuilder} fb
+   * @param {ModalService} modalService
+   * @param {SnackbarService} snackbarService
+   * @param {ZaakService} zaakService
+   */
   constructor(
-    private fb: FormBuilder,
-    private http: ApplicationHttpClient,
     private accountsService: AccountsService,
+    private datePipe: DatePipe,
+    private fb: FormBuilder,
     private modalService: ModalService,
     private snackbarService: SnackbarService,
-    private datePipe: DatePipe,
-  ) { }
+    private zaakService: ZaakService,
+  ) {
+  }
 
   //
   // Getters / setters.
@@ -74,9 +84,9 @@ export class ToegangVerlenenComponent implements OnInit, OnChanges {
    */
   getContextData() {
     this.accountsService.getPermissions()
-      .subscribe( res => {
+      .subscribe(res => {
         this.permissions = res;
-        this.selectedPermissions = this.permissions.map( p => p.name )
+        this.selectedPermissions = this.permissions.map(p => p.name)
       }, error => console.error(error))
   }
 
@@ -85,7 +95,7 @@ export class ToegangVerlenenComponent implements OnInit, OnChanges {
    * @param event
    */
   updateSelectedPermissions(event) {
-    this.selectedPermissions = event.map( p => p.name );
+    this.selectedPermissions = event.map(p => p.name);
   }
 
   /**
@@ -94,9 +104,29 @@ export class ToegangVerlenenComponent implements OnInit, OnChanges {
    */
   onSearch(searchInput) {
     this.accountsService.getAccounts(searchInput).subscribe(res => {
-      this.users = res.results;
-    }, error => this.reportError(error)
+        this.users = res.results;
+      }, error => this.reportError(error)
     );
+  }
+
+  /**
+   * Gets called when a user is selected.
+   * @param user
+   */
+  onUserChange(user: any) {
+    this.zaakService.listCaseUsers(this.zaak.bronorganisatie, this.zaak.identificatie).subscribe(
+      (userPermissions: UserPermission[]) => {
+        const permission = userPermissions.find((userPermission: UserPermission) => userPermission.username === user.username)
+
+        if (!permission) {
+          return
+        }
+
+        console.log(permission)
+        this.selectedPermissions = permission.permissions.map((zaakPermission: ZaakPermission) => zaakPermission.permission)
+        console.log(this.selectedPermissions)
+      }
+    )
   }
 
   /**
@@ -118,7 +148,7 @@ export class ToegangVerlenenComponent implements OnInit, OnChanges {
       endDate: endDate,
       zaak: this.zaak.url
     }];
-    this.accountsService.postAccessForCase(formData).subscribe( res => {
+    this.accountsService.postAccessForCase(formData).subscribe(res => {
       this.submitResult = {
         username: res.requester,
         name: this.requesterUser
@@ -152,5 +182,4 @@ export class ToegangVerlenenComponent implements OnInit, OnChanges {
     console.error(error);
     this.isSubmitting = false;
   }
-
 }

@@ -4,10 +4,11 @@
       <p>Selecteer een gebruiker die u toegang wilt verlenen tot deze zaak.</p>
 
       <!-- Search user -->
-      <gu-multiselect (search)="onSearch($event)"
-                      [items]="users"
+      <gu-multiselect [items]="users"
                       [multiple]="false"
                       [control]="requesterControl"
+                      (change)="onUserChange($event)"
+                      (search)="onSearch($event)"
                       bindLabel="fullName"
                       bindValue="username"
                       required
