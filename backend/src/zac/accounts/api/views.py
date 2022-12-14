@@ -7,6 +7,7 @@ from rest_framework import status, views
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from drf_spectacular.openapi import OpenApiParameter, OpenApiTypes
 
 from zac.core.api.mixins import ListMixin
 from zac.core.services import get_informatieobjecttypen
@@ -51,6 +52,15 @@ class InformatieobjecttypenJSONView(views.APIView):
     description=_(
         "Returns all available permissions for the user and their description."
     ),
+    parameters=[
+        OpenApiParameter(
+            name="availableFor",
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description=_("The username of the user for which unassigned permissions are requested.")
+        )
+    ]
 )
 class PermissionView(ListMixin, views.APIView):
     authentication_classes = [SessionAuthentication]
