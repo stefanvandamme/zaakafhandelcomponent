@@ -5,6 +5,14 @@ Release 0.6.7
 
 Deze release bevat de volgende changes:
 
+* Contezza-apps `3.3.1`
+
+
+Release 0.6.7
+-------------
+
+Deze release bevat de volgende changes:
+
 * Contezza-apps `2.2.7`
 
 Deze release bevat een oplossing voor de volgende tickets: 
